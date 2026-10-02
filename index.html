@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>기타·베이스 지판 암기 훈련</title>
+<style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",sans-serif}
+body{margin:0;background:#111;color:#eee;display:flex;justify-content:center;-webkit-text-size-adjust:100%}
+.app{width:min(760px,92vw);padding:20px 0 45px}
+h1{font-size:26px;margin:0 0 8px}
+.sub{color:#aaa;margin-bottom:24px}
+.card{background:#1d1d1d;border-radius:18px;padding:24px;margin-bottom:16px}
+.question{font-size:42px;font-weight:800;text-align:center;padding:24px 10px}
+#status{text-align:center;font-size:22px;min-height:32px}
+.controls{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;color:#aaa;font-size:13px;margin-bottom:6px}
+select,button{width:100%;box-sizing:border-box;border:0;border-radius:12px;padding:15px 13px;font-size:17px;min-height:52px}
+button{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+select{background:#292929;color:#fff}
+button{background:#eee;color:#111;font-weight:700;cursor:pointer}
+button.secondary{background:#333;color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}
+.stat{background:#252525;border-radius:12px;padding:14px}
+.num{font-size:25px;font-weight:800}
+small{color:#999}
+.good{color:#65e48b}.bad{color:#ff7272}.neutral{color:#ddd}
+details{margin-top:14px;color:#aaa}
+@media(max-width:520px){
+  .app{width:calc(100vw - 24px);padding-top:16px}
+  h1{font-size:24px}
+  .card{padding:16px;margin-bottom:12px;border-radius:16px}
+  .question{font-size:36px;line-height:1.25;padding:25px 5px}
+  #status{font-size:19px;min-height:28px}
+  .controls{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  .stats .stat:last-child{grid-column:1/-1}
+  select,button{font-size:16px;min-height:54px}
+}
+</style>
+
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#111111">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="지판 훈련">
+<link rel="apple-touch-icon" href="icon-192.png">
+
+</head>
+<body>
+<div class="app">
+<h1>기타·베이스 지판 암기 훈련</h1>
+<div id="sub" class="sub">문제를 보고 실제 악기에서 해당 음을 치세요.</div>
+
+<div class="card">
+  <div id="question" class="question">6번줄 — A</div>
+  <div id="status" class="neutral">마이크 시작을 누르세요.</div>
+</div>
+
+<div class="card controls">
+  <div>
+    <label>훈련 모드</label>
+    <select id="mode">
+      <option value="fretboard">지판 암기</option>
+      <option value="scale">스케일 암기</option>
+    </select>
+  </div>
+  <div>
+    <label>악기</label>
+    <select id="instrument">
+      <option value="guitar">기타 · 6현 · E A D G B E</option>
+      <option value="bass4">베이스 · 4현 · E A D G</option>
+      <option value="bass5">베이스 · 5현 · B E A D G</option>
+    </select>
+  </div>
+  <div>
+    <label>출제 범위</label>
+    <select id="strings"></select>
+  </div>
+  <div>
+    <label>프렛 범위</label>
+    <select id="frets">
+      <option value="12">0~12프렛</option>
+      <option value="5">0~5프렛</option>
+      <option value="7">0~7프렛</option>
+      <option value="9">0~9프렛</option>
+      <option value="15">0~15프렛</option>
+      <option value="24">0~24프렛</option>
+    </select>
+  </div>
+</div>
+<div id="scaleControls" class="card controls" style="display:none">
+  <div>
+    <label>스케일 종류</label>
+    <select id="scaleType">
+      <option value="all">메이저 · 마이너 · 모드</option>
+      <option value="major">메이저 (Ionian)</option>
+      <option value="minor">내추럴 마이너 (Aeolian)</option>
+      <option value="dorian">Dorian</option>
+      <option value="phrygian">Phrygian</option>
+      <option value="lydian">Lydian</option>
+      <option value="mixolydian">Mixolydian</option>
+      <option value="locrian">Locrian</option>
+    </select>
+  </div>
+  <div>
+    <label>문제 방식</label>
+    <select id="scaleQuestion">
+      <option value="name">스케일 이름 → 지판에서 연주</option>
+      <option value="root">루트음 + 스케일 → 연주</option>
+    </select>
+  </div>
+</div>
+
+<div class="card controls">
+  <button id="start">🎙 마이크 시작</button>
+  <button id="next" class="secondary">다음 문제</button>
+</div>
+
+<div class="card stats">
+  <div class="stat"><small>정답</small><div id="correct" class="num">0</div></div>
+  <div class="stat"><small>오답</small><div id="wrong" class="num">0</div></div>
+  <div class="stat"><small>정답률</small><div id="rate" class="num">0%</div></div>
+</div>
+
+<details open>
+<summary>아이폰 사용법</summary><p><b>앱처럼 쓰기:</b> Safari에서 이 주소를 연 뒤 <b>공유 → 홈 화면에 추가</b>를 누르면 홈 화면 아이콘으로 바로 실행할 수 있습니다.</p>
+<p><b>1.</b> Safari에서 HTTPS 주소로 이 페이지를 엽니다.<br>
+<b>2.</b> <b>🎙 마이크 시작</b>을 누릅니다.<br>
+<b>3.</b> 마이크 권한이 나오면 <b>허용</b>을 누릅니다.<br>
+<b>4.</b> 기타/베이스를 연주합니다.</p>
+<p>오디오 인터페이스를 연결하지 않아도 휴대폰 마이크로 테스트할 수 있습니다. 다만 앰프 소리가 너무 크거나 주변 소음이 많으면 음정 인식 정확도가 떨어질 수 있습니다.</p>
+</details>
+<details>
+<summary>사용법</summary>
+<p>기타/베이스를 오디오 인터페이스에 연결한 뒤 맥북에서 이 페이지의 마이크 권한을 허용하세요. 튜너처럼 입력 음의 기본주파수를 분석합니다.</p>
+<p>지판 암기에서는 같은 음이름(옥타브 무관)을 맞히면 정답입니다. 스케일 암기에서는 선택한 루트와 스케일에 포함되는 음을 연주하면 정답 처리됩니다. 메이저, 내추럴 마이너, Ionian·Dorian·Phrygian·Lydian·Mixolydian·Locrian을 지원합니다.</p>
+</details>
+</div>
+
+<script>
+const NOTES=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+// MIDI open strings: 6=E2, 5=A2, 4=D3, 3=G3, 2=B3, 1=E4
+const OPEN={6:40,5:45,4:50,3:55,2:59,1:64};
+let target=null, audioCtx=null, analyser=null, data=null, raf=null;
+let correct=0,wrong=0,locked=false, startedAt=0;
+
+const $=id=>document.getElementById(id);
+function rand(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+const SCALE_INTERVALS={
+  major:[0,2,4,5,7,9,11],
+  minor:[0,2,3,5,7,8,10],
+  dorian:[0,2,3,5,7,9,10],
+  phrygian:[0,1,3,5,7,8,10],
+  lydian:[0,2,4,6,7,9,11],
+  mixolydian:[0,2,4,5,7,9,10],
+  locrian:[0,1,3,5,6,8,10]
+};
+const SCALE_NAMES={
+  major:"메이저 (Ionian)", minor:"내추럴 마이너 (Aeolian)",
+  dorian:"Dorian", phrygian:"Phrygian", lydian:"Lydian",
+  mixolydian:"Mixolydian", locrian:"Locrian"
+};
+const ROOTS=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+let scaleTarget=null;
+
+function allowedStrings(){
+  const v=$("strings").value;
+  if(v==="all") return [1,2,3,4,5,6];
+  if(v==="low") return [4,5,6];
+  if(v==="bass") return [5,6];
+  return [Number(v)];
+}
+function makeQuestion(){
+  const mode=$("mode").value;
+  if(mode==="scale"){ makeScaleQuestion(); return; }
+  const strings=allowedStrings(), max=Number($("frets").value);
+  const string=strings[rand(0,strings.length-1)];
+  const fret=rand(0,max);
+  const midi=INSTRUMENTS[currentInstrument].open[string]+fret;
+  target={string,fret,midi,pc:midi%12,note:NOTES[midi%12]};
+  $("question").textContent=`${string}번줄 — ${target.note}`;
+  $("sub").textContent=`${INSTRUMENTS[currentInstrument].name} · 문제를 보고 실제 악기에서 해당 음을 치세요.`;
+  $("status").textContent="치세요.";
+  $("status").className="neutral";
+  locked=false; startedAt=performance.now();
+}
+function makeScaleQuestion(){
+  const type=$("scaleType").value;
+  let keys=Object.keys(SCALE_INTERVALS);
+  let kind=type==="all" ? keys[rand(0,keys.length-1)] : type;
+  const root=rand(0,11);
+  const rootName=ROOTS[root];
+  scaleTarget={root,kind,pcs:SCALE_INTERVALS[kind].map(i=>(root+i)%12)};
+  $("question").textContent=`${rootName} ${SCALE_NAMES[kind]}`;
+  $("sub").textContent=`${INSTRUMENTS[currentInstrument].name} · 해당 스케일의 음을 연주하세요.`;
+  $("status").textContent="스케일을 연주하세요.";
+  $("status").className="neutral";
+  locked=false; startedAt=performance.now();
+}
+function updateStats(){
+  $("correct").textContent=correct;
+  $("wrong").textContent=wrong;
+  const total=correct+wrong;
+  $("rate").textContent=total?Math.round(correct/total*100)+"%":"0%";
+}
+function freqToMidi(f){return Math.round(69+12*Math.log2(f/440))}
+function autoCorrelate(buf,sr){
+  let SIZE=buf.length, rms=0;
+  for(let i=0;i<SIZE;i++){let x=buf[i];rms+=x*x}
+  rms=Math.sqrt(rms/SIZE);
+  if(rms<0.012) return -1;
+  let bestOffset=-1,best=0,found=0;
+  const minLag=Math.floor(sr/1000), maxLag=Math.floor(sr/45);
+  for(let lag=minLag;lag<=maxLag;lag++){
+    let sum=0;
+    for(let i=0;i<SIZE-lag;i++) sum+=buf[i]*buf[i+lag];
+    const corr=sum/(SIZE-lag);
+    if(corr>0.75 && corr>best){best=corr;bestOffset=lag;found=1}
+  }
+  if(!found) return -1;
+  // parabolic interpolation around the correlation peak
+  let lag=bestOffset;
+  if(lag>1 && lag<maxLag-1){
+    const c=(l)=>{let s=0;for(let i=0;i<SIZE-l;i++)s+=buf[i]*buf[i+l];return s/(SIZE-l)}
+    const y1=c(lag-1),y2=c(lag),y3=c(lag+1);
+    const denom=2*(2*y2-y1-y3);
+    if(denom) lag += (y1-y3)/denom;
+  }
+  return sr/lag;
+}
+async function startMic(){
+  if(audioCtx){return}
+  try{
+    const stream=await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}
+    });
+    audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    const src=audioCtx.createMediaStreamSource(stream);
+    analyser=audioCtx.createAnalyser();
+    analyser.fftSize=4096;
+    analyser.smoothingTimeConstant=0;
+    src.connect(analyser);
+    data=new Float32Array(analyser.fftSize);
+    $("start").textContent="마이크 작동 중";
+    $("start").disabled=true;
+    loop();
+  }catch(e){
+    $("status").textContent="마이크 권한을 허용할 수 없습니다.";
+    $("status").className="bad";
+  }
+}
+function loop(){
+  analyser.getFloatTimeDomainData(data);
+  const f=autoCorrelate(data,audioCtx.sampleRate);
+  if(f>0){
+    const midi=freqToMidi(f), pc=((midi%12)+12)%12;
+    $("status").textContent=`입력: ${NOTES[pc]} (${f.toFixed(1)} Hz)`;
+    if($("mode").value==="fretboard"){
+      if(target && !locked && pc===target.pc){
+        locked=true; correct++; updateStats();
+        $("status").textContent=`정답! ${target.string}번줄 ${target.note}`;
+        $("status").className="good";
+        setTimeout(makeQuestion,650);
+      }
+    } else {
+      if(scaleTarget && !locked && scaleTarget.pcs.includes(pc)){
+        locked=true; correct++; updateStats();
+        $("status").textContent=`정답! ${NOTES[pc]} — ${SCALE_NAMES[scaleTarget.kind]}`;
+        $("status").className="good";
+        setTimeout(makeScaleQuestion,650);
+      }
+    }
+  }
+  raf=requestAnimationFrame(loop);
+}
+function refreshMode(){
+  const scale=$("mode").value==="scale";
+  $("scaleControls").style.display=scale?"grid":"none";
+  makeQuestion();
+}
+$("start").onclick=async ()=>{
+  if(location.protocol!=="https:" && location.hostname!=="localhost" && location.hostname!=="127.0.0.1"){
+    $("status").textContent="iPhone에서는 HTTPS 주소로 열어야 마이크가 작동합니다.";
+    $("status").className="bad";
+    return;
+  }
+  await startMic();
+};
+$("next").onclick=makeQuestion;
+$("mode").onchange=refreshMode;
+$("instrument").onchange=()=>{
+  setupStringOptions();
+  makeQuestion();
+};
+$("strings").onchange=makeQuestion;
+$("frets").onchange=makeQuestion;
+$("scaleType").onchange=makeQuestion;
+$("scaleQuestion").onchange=makeQuestion;
+setupStringOptions();
+makeQuestion(); updateStats();
+</script>
+
+<script>
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")) {
+  window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(() => {}));
+}
+</script>
+
+</body>
+</html>
